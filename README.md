@@ -15,8 +15,8 @@ foo and recovered_foo are identical, bar is a "mess".
 
 ### Usage
 
-mangle [input_file [output_file]]
-mangle -h | --help
+    mangle [input_file [output_file]]
+    mangle -h | --help
 
 ### Options
 --help, -h   print this help information and exit.
