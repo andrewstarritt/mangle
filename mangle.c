@@ -1,4 +1,8 @@
-/* The mangle program is free software: you can redistribute it and/or modify
+/* mangle.c
+ *
+ * Copyright (c) 2013,2017,2018 Andrew Starritt
+ *
+ * The mangle program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -10,8 +14,6 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with the mangle program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Copyright (c) 2013,2017 Andrew Starritt
  *
  * Author: Andrew Starritt
  * Contact details:  starritt@netspace.net.au
@@ -26,18 +28,20 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#define MANGLE_VERSION_STRING  "1.1"
+#define MANGLE_VERSION_STRING  "1.1.2"
 
 /*------------------------------------------------------------------------------
  */
-static void usage (FILE *stream) {
+static void usage (FILE *stream)
+{
    fprintf (stream, "usage: mangle [input_file [output_file]]\n");
    fprintf (stream, "       mangle -h | --help\n");
 }
 
 /*------------------------------------------------------------------------------
  */
-static void help () {
+static void help ()
+{
    fprintf (stdout, "mangle %s\n", MANGLE_VERSION_STRING);
    fprintf (stdout, "\n");
    usage   (stdout);
@@ -47,7 +51,8 @@ static void help () {
    fprintf (stdout, "mangle is the binary equivilent of ROT13 - it does just enough to fool\n");
    fprintf (stdout, "those pesky e-mail filters.\n");
    fprintf (stdout, "\n");
-   fprintf (stdout, "mangle an involution , i.e. it also de-mangles as mangle is its own inverse.\n");
+   fprintf (stdout, "mangle an involutory program, i.e. it also de-mangles as mangle is its\n");
+   fprintf (stdout, "own inverse:\n");
    fprintf (stdout, "\n");
    fprintf (stdout, "   mangle  foo bar\n");
    fprintf (stdout, "   mangle  bar recovered_foo\n");
@@ -169,3 +174,5 @@ int main (int argc, char *argv[])
 
    return status;
 }
+
+/* end*/
