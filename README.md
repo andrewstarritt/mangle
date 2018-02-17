@@ -7,17 +7,17 @@ mangle is the binary equivilent of ROT13 - it does just enough to fool
 those pesky e-mail filters.
 
 mangle an involutory program, i.e. it also de-mangles as mangle is its
-own inverse.
+own inverse:
 
-   mangle  foo bar
-   mangle  bar recovered_foo
+    mangle  foo bar
+    mangle  bar recovered_foo
 
 foo and recovered_foo are identical, bar is a "mess".
 
 ### Usage
 
-mangle [input_file [output_file]]
-mangle -h | --help
+    mangle [input_file [output_file]]
+    mangle -h | --help
 
 ### Options
 --help, -h   print this help information and exit.
