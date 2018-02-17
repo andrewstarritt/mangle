@@ -1,7 +1,8 @@
 # mangle
 
 mangle mangles a file or standard input to a file or standard output.
-Note mangle is not cyrptographically secure - that's not its purpose.
+
+Note: mangle *is not* cyrptographically secure - that's not its purpose.
 mangle is the binary equivilent of ROT13 - it does just enough to fool
 those pesky e-mail filters.
 
