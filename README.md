@@ -1,8 +1,9 @@
 # mangle
 
 mangle mangles a file or standard input to a file or standard output.
-Note mangle is not cyrptographically secure - that's not its purpose.
-mangle is the binary equivilent of ROT13 - it does just enough to fool
+
+Note: mangle *is not* cyrptographically secure - that's not its purpose.
+mangle is the binary equivalent of ROT13 - it does just enough to fool
 those pesky e-mail filters.
 
 mangle an involutory program, i.e. it also de-mangles as mangle is its
@@ -27,4 +28,3 @@ input_file   the file to be mangled/demangled. When no input file specified, or
 
 output_file  target demangled/mangled file. When no output file specified, or
              just '-' specified, the output is sent to standard output.
-

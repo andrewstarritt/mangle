@@ -1,6 +1,6 @@
 /* mangle.c
  *
- * Copyright (c) 2013,2017,2018 Andrew Starritt
+ * Copyright (c) 2013-2019 Andrew Starritt
  *
  * The mangle program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
  * along with the mangle program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * Author: Andrew Starritt
- * Contact details:  starritt@netspace.net.au
+ * Contact details:  andrew.starritt@gmail.com
  *
  */
 
@@ -28,7 +28,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#define MANGLE_VERSION_STRING  "1.1.2"
+#define MANGLE_VERSION_STRING  "1.1.3"
 
 /*------------------------------------------------------------------------------
  */
@@ -48,7 +48,7 @@ static void help ()
    fprintf (stdout, "\n");
    fprintf (stdout, "mangle mangles a file or standard input to a file or standard output.\n");
    fprintf (stdout, "Note mangle is not cyrptographically secure - that's not its purpose.\n");
-   fprintf (stdout, "mangle is the binary equivilent of ROT13 - it does just enough to fool\n");
+   fprintf (stdout, "mangle is the binary equivalent of ROT13 - it does just enough to fool\n");
    fprintf (stdout, "those pesky e-mail filters.\n");
    fprintf (stdout, "\n");
    fprintf (stdout, "mangle an involutory program, i.e. it also de-mangles as mangle is its\n");
