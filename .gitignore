@@ -1,3 +1,5 @@
 *.local
 mangle
 _hub
+creator.d/
+mangle.creator
