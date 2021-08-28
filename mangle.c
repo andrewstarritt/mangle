@@ -31,10 +31,12 @@
 #define MANGLE_VERSION_STRING  "1.2.1"
 
 #define MAX_NSETS  32
+#define NSET_SIZE  256
+
 
 typedef unsigned char byte;
 
-static const byte map_data [MAX_NSETS] [256] = {
+static const byte map_data [MAX_NSETS] [NSET_SIZE] = {
    {
        22,  63, 255, 175, 206, 118, 123, 144, 192, 225, 218,  60, 117, 161,  83, 106,
       233,  59, 174,  40, 197, 183,  54, 148,  31, 141, 170, 139,  93,  61, 112,  50,
@@ -613,11 +615,12 @@ static const byte map_data [MAX_NSETS] [256] = {
    }
 };
 
-/* Each number is relatively prime with 256
+/* Each increment is relatively prime with respect to NSET_SIZE,
+ * i.e. gcd (increment, NSET_SIZE) = 1
  */
 static const byte increments [MAX_NSETS] = {
-   3,   5,  7,  9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 33,
-   35, 37, 39, 41, 43, 45, 47, 49, 51, 53, 55, 57, 59, 61, 63, 65
+   29, 31, 33,  5, 17, 19, 39, 41, 43, 23, 25, 27,  7,  9, 61, 3,
+   63, 11, 13, 45, 47, 49, 51, 53, 59, 21, 15, 35, 37, 55, 57, 65
 };
 
 static int number = 0;          /* 1 .. MAX_NSETS */
@@ -627,10 +630,26 @@ static byte map_count [MAX_NSETS];
 
 
 /*------------------------------------------------------------------------------
+ * Rotate shift left
+ */
+static byte rsl (const byte x, const int s)
+{
+   return ((x << s) | (x >> (8 - s))) & 255;
+}
+
+/*------------------------------------------------------------------------------
+ * Rotate shift right
+ */
+static byte rsr (const byte x, const int s)
+{
+   return ((x >> s) | (x << (8 - s))) & 255;
+}
+
+/*------------------------------------------------------------------------------
  */
 static void initialise (const char* phrase)
 {
-   const byte* key = (byte*) phrase;
+   const byte* key = (const byte*) phrase;
    const int n = strnlen (phrase, 1024);
 
    byte scrunched_key [MAX_NSETS];
@@ -642,16 +661,16 @@ static void initialise (const char* phrase)
 
    for (j = 0; j < n; j++) {
       int i = j % MAX_NSETS;
-      int p = (i + 31) % MAX_NSETS; /* the previous */
-      int n = (i +  1) % MAX_NSETS; /* the next */
+      int p = (i + MAX_NSETS - 1) % MAX_NSETS;  /* the previous */
+      int n = (i + 1)             % MAX_NSETS;  /* the next */
 
-      int t = (scrunched_key[p] << 3) ^ key [j] ^ (scrunched_key[n] >> 1);
-      scrunched_key[j] ^= t;
+      int t = rsl (scrunched_key[p], 3) ^ key [j] ^ rsr (scrunched_key[n], 1);
+      scrunched_key[i] ^= t;
    }
 
    /* Set the number to use
     */
-   number = n > MAX_NSETS ? MAX_NSETS : n;
+   number = (n >= MAX_NSETS) ? MAX_NSETS : n;
 
    for (j = 0; j < number; j++) {
       positions [j] = scrunched_key[j];
@@ -666,24 +685,24 @@ static void initialise (const char* phrase)
  */
 static byte next_xor ()
 {
-   if (number <= 0) return 0xFF;  /* mage version 1 compatible */
+   if (number <= 0) return 0xFF;  /* keep version 1.1.x compatible */
 
    int j;
 
-   byte result = positions [0];
+   byte result = 0;
    for (j = 0; j < number; j++) {
-      int mi = map_index [j];
-      byte t = map_data [mi][result];
-      result = t;
+      const int pi = (result + positions [j]) % NSET_SIZE;
+      const int mi = map_index [j];
+      result = map_data [mi][pi];
    }
 
-   /* now increment the postions
+   /* post increment the postions.
     */
    for (j = 0; j < number; j++) {
-      int p = positions [j] + map_count [j];
-      positions [j] = p % 256;
-      if (p < 256) {
-         /* no wrap around */
+      const int p = positions [j] + map_count [j];
+      positions [j] = p % NSET_SIZE;
+      if (p < NSET_SIZE) {
+         /* no wrap around - skip any more position updates */
          break;
       }
    }
@@ -695,7 +714,7 @@ static byte next_xor ()
  */
 static void usage (FILE *stream)
 {
-   fprintf (stream, "usage: mangle [[-k,--key] phrase] [input_file [output_file]]\n");
+   fprintf (stream, "usage: mangle [[-k | --key] phrase] [input_file [output_file]]\n");
    fprintf (stream, "       mangle -v | --version\n");
    fprintf (stream, "       mangle -h | --help\n");
 }
@@ -714,10 +733,10 @@ static void help ()
    fprintf (stdout, "those pesky e-mail filters.\n");
    fprintf (stdout, "\n");
    fprintf (stdout, "mangle an involutory program, i.e. it also de-mangles as mangle is its\n");
-   fprintf (stdout, "own inverse:\n");
+   fprintf (stdout, "own inverse, e.g.:\n");
    fprintf (stdout, "\n");
-   fprintf (stdout, "   mangle  foo bar\n");
-   fprintf (stdout, "   mangle  bar recovered_foo\n");
+   fprintf (stdout, "   mangle --key 'portunus' foo bar\n");
+   fprintf (stdout, "   mangle --key 'portunus' bar recovered_foo\n");
    fprintf (stdout, "\n");
    fprintf (stdout, "foo and recovered_foo are identical, bar is a \"mess\".\n");
    fprintf (stdout, "\n");
@@ -778,7 +797,7 @@ static int mangle_it (const int fdin, const int fdout)
 
    }
    return 0;
-}      /* mangle_it */
+}
 
 
 /*------------------------------------------------------------------------------
@@ -792,8 +811,7 @@ int main (int argc, char** argv)
 
    /* skip progran name
     */
-   argv++;
-   argc--;
+   argc--;  argv++;
 
    if (argc >= 1) {
       if ( (strcmp (argv [0], "--help") == 0) ||
@@ -822,10 +840,8 @@ int main (int argc, char** argv)
 
          initialise (argv [1]);
 
-         argv++;
-         argv++;
-         argc--;
-         argc--;
+         argc--;  argv++;
+         argc--;  argv++;
       }
    }
 
@@ -835,7 +851,7 @@ int main (int argc, char** argv)
       return 1;
    }
 
-   /* std in to std out - the default
+   /* set defult I/O to stdin and stdout.
     */
    fdin = 0;
    fdout = 1;
@@ -864,12 +880,19 @@ int main (int argc, char** argv)
       }
    }
 
-   if (fdout != 1) {
-      fprintf (stdout, "mangle %s\n", MANGLE_VERSION_STRING);
-   }
+   fprintf (stderr, "mangle %s\n", MANGLE_VERSION_STRING);
 
    status = mangle_it (fdin, fdout);
 
+   if (fdin != 0) {
+      close (fdin);
+   }
+
+   if (fdout != 1) {
+      close (fdout);
+   }
+
+   fprintf (stderr, "mangle complete\n");
    return status;
 }
 
