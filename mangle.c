@@ -725,7 +725,7 @@ static void help ()
    fprintf (stdout, "--key, -k    Provides a mangling key phrase for a little bit more privacy.\n");
    fprintf (stdout, "             The same key phrase must be used for mangling and de-mangling.\n");
    fprintf (stdout, "             If/when no key phrase is provided, then mangle is compatible\n");
-   fprintf (stdout, "             with the mangle version 1.1.n versions.");
+   fprintf (stdout, "             with the mangle version 1.1.n versions.\n");
    fprintf (stdout, "\n");
    fprintf (stdout, "--help, -h   print this help information and exit.\n");
    fprintf (stdout, "\n");

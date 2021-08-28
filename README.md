@@ -9,17 +9,22 @@ those pesky e-mail filters.
 mangle an involutory program, i.e. it also de-mangles as mangle is its
 own inverse:
 
-    mangle  foo bar
-    mangle  bar recovered_foo
+    mangle --key 'peter pan' foo bar
+    mangle --key 'peter pan' bar recovered_foo
 
 foo and recovered_foo are identical, bar is a "mess".
 
 ### Usage
 
-    mangle [input_file [output_file]]
+    mangle [[-k,--key] phrase] [input_file [output_file]]
     mangle -h | --help
 
 ### Options
+--key, -k    Provides a mangling key phrase for a little bit more privacy.
+             The same key phrase must be used for mangling and de-mangling.
+             If/when no key phrase is provided, then mangle is compatible
+             with the mangle version 1.1.n versions.
+
 --help, -h   print this help information and exit.
 
 ### Parameters
