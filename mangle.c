@@ -1,6 +1,6 @@
 /* mangle.c
  *
- * Copyright (c) 2013-2019 Andrew Starritt
+ * Copyright (c) 2013-2021 Andrew Starritt
  *
  * The mangle program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -696,6 +696,7 @@ static byte next_xor ()
 static void usage (FILE *stream)
 {
    fprintf (stream, "usage: mangle [[-k,--key] phrase] [input_file [output_file]]\n");
+   fprintf (stream, "       mangle -v | --version\n");
    fprintf (stream, "       mangle -h | --help\n");
 }
 
@@ -722,20 +723,22 @@ static void help ()
    fprintf (stdout, "\n");
    fprintf (stdout, "\n");
    fprintf (stdout, "Options\n");
-   fprintf (stdout, "--key, -k    Provides a mangling key phrase for a little bit more privacy.\n");
-   fprintf (stdout, "             The same key phrase must be used for mangling and de-mangling.\n");
-   fprintf (stdout, "             If/when no key phrase is provided, then mangle is compatible\n");
-   fprintf (stdout, "             with the mangle version 1.1.n versions.\n");
+   fprintf (stdout, "--key, -k     Provides a mangling key phrase for a little bit more privacy.\n");
+   fprintf (stdout, "              The same key phrase must be used for mangling and de-mangling.\n");
+   fprintf (stdout, "              If/when no key phrase is provided, then mangle is compatible\n");
+   fprintf (stdout, "              with the mangle version 1.1.n\n");
    fprintf (stdout, "\n");
-   fprintf (stdout, "--help, -h   print this help information and exit.\n");
+   fprintf (stdout, "--version, -v print mangle version and exit.\n");
+   fprintf (stdout, "\n");
+   fprintf (stdout, "--help, -h    print this help information and exit.\n");
    fprintf (stdout, "\n");
    fprintf (stdout, "\n");
    fprintf (stdout, "Parameters\n");
-   fprintf (stdout, "input_file   the file to be mangled/demangled. When no input file specified, or\n");
-   fprintf (stdout, "             just '-' specified, the input is taken from standard input.\n");
+   fprintf (stdout, "input_file    the file to be mangled/demangled. When no input file specified, or\n");
+   fprintf (stdout, "              just '-' specified, the input is taken from standard input.\n");
    fprintf (stdout, "\n");
-   fprintf (stdout, "output_file  target demangled/mangled file. When no output file specified, or\n");
-   fprintf (stdout, "             just '-' specified, the output is sent to standard output.\n");
+   fprintf (stdout, "output_file   target demangled/mangled file. When no output file specified, or\n");
+   fprintf (stdout, "              just '-' specified, the output is sent to standard output.\n");
    fprintf (stdout, "\n");
 }
 
@@ -799,12 +802,20 @@ int main (int argc, char** argv)
          return 0;
       }
    }
+   
+   if (argc >= 1) {
+      if ( (strcmp (argv [0], "--version") == 0) ||
+           (strcmp (argv [0], "-v") == 0) ) {
+         fprintf (stdout, "mangle %s\n", MANGLE_VERSION_STRING);
+         return 0;
+      }
+   }
 
    if (argc >= 1) {
       if ( (strcmp (argv [0], "--key") == 0) ||
            (strcmp (argv [0], "-k") == 0) ) {
          if (argc < 2) {
-            fprintf (stderr, "missing key argument\n");
+            fprintf (stderr, "missing key phrase argument\n");
             usage (stderr);
             return 1;
          }
