@@ -1,0 +1,41 @@
+#!/bin/bash
+#
+
+key="portunus"
+
+raw=$( cat mangle.c | md5sum )
+man=$( cat mangle.c | ./mangle --key "${key}" 2>/dev/null | md5sum )
+rec=$( cat mangle.c | ./mangle --key "${key}" 2>/dev/null | ./mangle --key "${key}" 2>/dev/null | md5sum  )
+
+if [ "${raw}" == "${man}" ] ; then
+    echo "Mangle test 1 failure"
+    echo "raw: ${raw}"
+    echo "man: ${man}"
+    exit 1
+fi
+echo "Mangle test 1 success"
+
+if [ "${raw}" != "${rec}" ] ; then
+    echo "Mangle test 2 failure"
+    echo "raw: ${raw}"
+    echo "rec: ${rec}"
+    exit 1
+fi
+echo "Mangle test 2 success"
+
+source=test.plain
+expected_md5="bd73e7c4ddb17194f0028b915bbb32ab  -"
+actual_md5=$( ./mangle --key "${key}" ${source:?}  2>/dev/null | md5sum )
+
+if [ "${actual_md5}" != "${expected_md5}" ] ; then
+    echo "Mangle test 3 failure"
+    echo "expected  md5: ${expected_md5}"
+    echo "actual md5:    ${actual_md5}"
+    exit 1
+fi
+echo "Mangle test 3 success"
+
+
+echo "Mangle test success"
+
+# end

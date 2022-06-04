@@ -28,7 +28,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#define MANGLE_VERSION_STRING  "1.2.1"
+#define MANGLE_VERSION_STRING  "1.2.2"
 
 #define MAX_NSETS  32
 #define NSET_SIZE  256
@@ -36,6 +36,9 @@
 
 typedef unsigned char byte;
 
+/* Each of the 32 arrays of 256 bytes is a pseudo random mapping fron a byte
+ * value to another byte value.
+ */
 static const byte map_data [MAX_NSETS] [NSET_SIZE] = {
    {   22,  63, 255, 175, 206, 118, 123, 144, 192, 225, 218,  60, 117, 161,  83, 106,
       233,  59, 174,  40, 197, 183,  54, 148,  31, 141, 170, 139,  93,  61, 112,  50,
@@ -552,21 +555,27 @@ static const byte map_data [MAX_NSETS] [NSET_SIZE] = {
 };
 
 /* Each increment is relatively prime with respect to NSET_SIZE,
- * i.e. gcd (increment, NSET_SIZE) = 1
+ * i.e. gcd (increment, NSET_SIZE) == 1
  */
 static const byte increments [MAX_NSETS] = {
    29, 31, 33,  5, 17, 19, 39, 41, 43, 23, 25, 27,  7,  9, 61,  3,
    63, 11, 13, 45, 47, 49, 51, 53, 59, 21, 15, 35, 37, 55, 57, 65
 };
 
-static int number = 0;          /* 1 .. MAX_NSETS */
+/* number is 0 .. MAX_NSETS, 0 implies basic 0xFF xor, i.e. same as mangle 1.1.x.
+ */
+static int number = 0;
+
+/* These in combination with the map_data array are used to yield a pseudo
+ * random byte value to xor with each and every byte being mangled/de-mangled
+ */
 static byte positions [MAX_NSETS];
 static byte map_index [MAX_NSETS];
 static byte map_count [MAX_NSETS];
 
 
 /*------------------------------------------------------------------------------
- * Rotate shift left
+ * Rotate shift left s places
  */
 static byte rsl (const byte x, const int s)
 {
@@ -574,7 +583,7 @@ static byte rsl (const byte x, const int s)
 }
 
 /*------------------------------------------------------------------------------
- * Rotate shift right
+ * Rotate shift right s places
  */
 static byte rsr (const byte x, const int s)
 {
@@ -582,6 +591,10 @@ static byte rsr (const byte x, const int s)
 }
 
 /*------------------------------------------------------------------------------
+ * Based on the phrase, this function sets up number and the positions, map_index
+ * and map_count arrays. number is based on the length of the array uptp a maximum
+ * of 32. A null phrase sets number to 0, i.e. makeing mangle 1.1.x compatible.
+ *
  */
 static void initialise (const char* phrase)
 {
@@ -595,19 +608,24 @@ static void initialise (const char* phrase)
       scrunched_key [j] = 0;
    }
 
+   /* Use the actual key to foorm a scrunched key, that is basically a
+    * simple hash of the key.
+    */
    for (j = 0; j < n; j++) {
       const int i = j % MAX_NSETS;
-      const int p = (i + MAX_NSETS - 1) % MAX_NSETS;  /* the previous */
-      const int n = (i + 1)             % MAX_NSETS;  /* the next */
+      const int p = (i + MAX_NSETS - 1) % MAX_NSETS;  /* the previous mod 32 */
+      const int n = (i + 1)             % MAX_NSETS;  /* the next     mod 32 */
 
       const int t = rsl (scrunched_key[p], 3) ^ key [j] ^ rsr (scrunched_key[n], 1);
       scrunched_key[i] ^= t;
    }
 
-   /* Set the number to use
+   /* Set the number to use.
     */
    number = (n >= MAX_NSETS) ? MAX_NSETS : n;
 
+   /* Using the scrunched_key, set up the three arrays
+    */
    for (j = 0; j < number; j++) {
       positions [j] = scrunched_key[j];
       map_index [j] = scrunched_key[j] % MAX_NSETS;
@@ -659,44 +677,55 @@ static void usage (FILE *stream)
  */
 static void help ()
 {
-   fprintf (stdout, "mangle %s\n", MANGLE_VERSION_STRING);
-   fprintf (stdout, "\n");
+   fprintf (stdout, "mangle %s\n\n", MANGLE_VERSION_STRING);
    usage   (stdout);
-   fprintf (stdout, "\n");
-   fprintf (stdout, "mangle mangles a file or standard input to a file or standard output.\n");
-   fprintf (stdout, "Note: mangle is not cyrptographically secure - that's not its purpose.\n");
-   fprintf (stdout, "mangle is the binary equivalent of ROT13 - it does just enough to fool\n");
-   fprintf (stdout, "those pesky e-mail filters.\n");
-   fprintf (stdout, "\n");
-   fprintf (stdout, "mangle an involutory program, i.e. it also de-mangles as mangle is its\n");
-   fprintf (stdout, "own inverse, e.g.:\n");
-   fprintf (stdout, "\n");
-   fprintf (stdout, "   mangle --key 'portunus' foo bar\n");
-   fprintf (stdout, "   mangle --key 'portunus' bar recovered_foo\n");
-   fprintf (stdout, "\n");
-   fprintf (stdout, "foo and recovered_foo are identical, bar is a \"mess\".\n");
-   fprintf (stdout, "\n");
-   fprintf (stdout, "\n");
-   fprintf (stdout, "Options\n");
-   fprintf (stdout, "--key, -k     Provides a mangling key phrase for a little bit more privacy.\n");
-   fprintf (stdout, "              The same key phrase must be used for mangling and de-mangling.\n");
-   fprintf (stdout, "              If/when no key phrase is provided, then mangle is compatible\n");
-   fprintf (stdout, "              with the mangle version 1.1.n\n");
-   fprintf (stdout, "\n");
-   fprintf (stdout, "--version, -v print mangle version and exit.\n");
-   fprintf (stdout, "\n");
-   fprintf (stdout, "--help, -h    print this help information and exit.\n");
-   fprintf (stdout, "\n");
-   fprintf (stdout, "\n");
-   fprintf (stdout, "Parameters\n");
-   fprintf (stdout, "input_file    the file to be mangled/demangled. When no input file specified, or\n");
-   fprintf (stdout, "              just '-' specified, the input is taken from standard input.\n");
-   fprintf (stdout, "\n");
-   fprintf (stdout, "output_file   target demangled/mangled file. When no output file specified, or\n");
-   fprintf (stdout, "              just '-' specified, the output is sent to standard output.\n");
-   fprintf (stdout, "\n");
+   fprintf (stdout, "\n"
+            "mangle mangles a file or standard input to a file or standard output.\n"
+            "Note: mangle is not cyrptographically secure - that's not its purpose.\n"
+            "mangle is the binary equivalent of ROT13 - it does just enough to fool\n"
+            "those pesky e-mail filters.\n"
+            "\n"
+            "Its intended use case is for when you want to e-mail a file ending with\n"
+            ".cmd (such as an st.cmd file), or even be so audacious as to want send\n"
+            "a friendly binary file to a friend or colleague. The e-mail filters are\n"
+            "even shameless enough to poke inside zipped files and tar-ball files, so\n"
+            "mangle provides a little bit of extra privacy (but I doubt it will stop\n"
+            "government agencies taking a look).\n"
+            "\n"
+            "mangle an involutory program, i.e. it also de-mangles as mangle is its\n"
+            "own inverse, e.g.:\n"
+            "\n"
+            "   mangle --key 'portunus' foo bar\n"
+            "   mangle --key 'portunus' bar recovered_foo\n"
+            "\n"
+            "foo and recovered_foo are identical, bar is a \"mess\".\n"
+            "\n"
+            "\n"
+            "Options\n"
+            "--key, -k     Provides a mangling key phrase for a little bit more privacy.\n"
+            "              The same key phrase must be used for mangling and de-mangling.\n"
+            "              If/when no key phrase is provided, then mangle is compatible\n"
+            "              with the mangle version 1.1.n\n"
+            "\n"
+            "--version, -v print mangle version and exit.\n"
+            "\n"
+            "--help, -h    print this help information and exit.\n"
+            "\n"
+            "\n"
+            "Parameters\n"
+            "input_file    the file to be mangled/demangled. When no input file specified, or\n"
+            "              just '-' specified, the input is taken from standard input.\n"
+            "\n"
+            "output_file   target demangled/mangled file. When no output file specified, or\n"
+            "              just '-' specified, the output is sent to standard output.\n"
+            "\n"
+            "\n"
+            "Notes\n"
+            "mangle was developed on Linux. However, no special libraries have been \n"
+            "used, nor any wacky non-standard C language features, so it should be\n"
+            "readily modified to compile and run in other environments.\n"
+            "\n");
 }
-
 
 /*------------------------------------------------------------------------------
  */
