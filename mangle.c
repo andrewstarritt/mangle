@@ -1,6 +1,6 @@
 /* mangle.c
  *
- * Copyright (c) 2013-2021 Andrew Starritt
+ * Copyright (c) 2013-2023 Andrew Starritt
  *
  * The mangle program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#define MANGLE_VERSION_STRING  "1.2.2"
+#define MANGLE_VERSION_STRING  "1.2.3"
 
 #define MAX_NSETS  32
 #define NSET_SIZE  256
@@ -689,8 +689,13 @@ static void help ()
             ".cmd (such as an st.cmd file), or even be so audacious as to want send\n"
             "a friendly binary file to a friend or colleague. The e-mail filters are\n"
             "even shameless enough to poke inside zipped files and tar-ball files, so\n"
-            "mangle provides a little bit of extra privacy (but I doubt it will stop\n"
-            "government agencies taking a look).\n"
+            "mangle provides a little bit of extra privacy (however I doubt it will\n"
+            "stop government agencies taking a peek).\n"
+            "\n"
+            "Example usage:\n"
+            "\n"
+            "[sender]    tar -czv directory | mangle --key phrase > file\n"
+            "[receiver]  mangle --key phrase file | tar -xzv\n"
             "\n"
             "mangle an involutory program, i.e. it also de-mangles as mangle is its\n"
             "own inverse, e.g.:\n"

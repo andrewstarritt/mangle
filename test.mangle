@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 
-key="portunus"
+key="portunus${RANDOM}"
 
 raw=$( cat mangle.c | md5sum )
 man=$( cat mangle.c | ./mangle --key "${key}" 2>/dev/null | md5sum )
@@ -23,6 +23,7 @@ if [ "${raw}" != "${rec}" ] ; then
 fi
 echo "Mangle test 2 success"
 
+key="portunus"
 source=test.plain
 expected_md5="bd73e7c4ddb17194f0028b915bbb32ab  -"
 actual_md5=$( ./mangle --key "${key}" ${source:?}  2>/dev/null | md5sum )
@@ -34,7 +35,6 @@ if [ "${actual_md5}" != "${expected_md5}" ] ; then
     exit 1
 fi
 echo "Mangle test 3 success"
-
 
 echo "Mangle test success"
 

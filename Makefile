@@ -3,17 +3,25 @@
 
 .PHONY: all  install  clean  uninstall
 
-all: install
+TARGET  = mangle
+INSTALL = /usr/local/bin/mangle
 
-install: mangle
+all: $(TARGET)  Makefile
 
-mangle : mangle.c Makefile
+install: $(INSTALL)  Makefile
+
+$(INSTALL) : $(TARGET)  Makefile
+	@echo "Installing $(TARGET) to $(INSTALL)"  && \
+	sudo cp -f $(TARGET) $(INSTALL)
+	@echo ""
+
+$(TARGET) : mangle.c  Makefile
 	gcc -Wall -O2 -o mangle mangle.c
 
 clean:
-	@echo ""
+	@rm -f *.o
 
 uninstall:
-	@rm -f mangle
+	@rm -f $(TARGET)
 
 # end
