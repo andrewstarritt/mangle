@@ -43,5 +43,5 @@ output_file  target de-mangled/mangled file. When no output file specified,
 ### <span style='color:#c06000'>1.2.1</span>
 mangle now takes an optional --key option.
 
-This does make mangle cyrptographically secure, however is does add a little
-bit of privacy.
+This does _not_ make mangle cyrptographically secure, however is does add a
+little bit of privacy.
