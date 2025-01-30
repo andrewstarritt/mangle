@@ -3,6 +3,7 @@
 
 .PHONY: all  install  clean  uninstall
 
+OPTIONS += -Wall -Werror -Wpedantic
 TARGET  = mangle
 INSTALL = /usr/local/bin/mangle
 
@@ -16,7 +17,7 @@ $(INSTALL) : $(TARGET)  Makefile
 	@echo ""
 
 $(TARGET) : mangle.c  Makefile
-	gcc -Wall -O2 -o mangle mangle.c
+	gcc $(OPTIONS) -O2 -o mangle mangle.c
 
 clean:
 	@rm -f *.o
