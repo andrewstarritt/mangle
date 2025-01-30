@@ -1,6 +1,6 @@
 /* mangle.c
  *
- * Copyright (c) 2013-2023 Andrew Starritt
+ * Copyright (c) 2013-2025 Andrew Starritt
  *
  * The mangle program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#define MANGLE_VERSION_STRING  "1.2.3"
+#define MANGLE_VERSION_STRING  "1.2.4"
 
 #define MAX_NSETS  32
 #define NSET_SIZE  256
@@ -36,7 +36,7 @@
 
 typedef unsigned char byte;
 
-/* Each of the 32 arrays of 256 bytes is a pseudo random mapping fron a byte
+/* Each of the 32 arrays of 256 bytes is a pseudo random mapping from a byte
  * value to another byte value.
  */
 static const byte map_data [MAX_NSETS] [NSET_SIZE] = {
@@ -639,11 +639,11 @@ static void initialise (const char* phrase)
  */
 static byte next_xor ()
 {
-   if (number <= 0) return 0xFF;  /* keep version 1.1.x compatible */
-
+   byte result = 0;
    int j;
 
-   byte result = 0;
+   if (number <= 0) return 0xFF;  /* keep version 1.1.x compatible */
+
    for (j = 0; j < number; j++) {
       const int pi = (result + positions [j]) % NSET_SIZE;
       const int mi = map_index [j];
@@ -680,18 +680,18 @@ static void help ()
    fprintf (stdout, "mangle %s\n\n", MANGLE_VERSION_STRING);
    usage   (stdout);
    fprintf (stdout, "\n"
-            "mangle mangles a file or standard input to a file or standard output.\n"
+            "mangle mangles a file or standard input to another file or to standard output.\n"
             "Note: mangle is not cyrptographically secure - that's not its purpose.\n"
             "mangle is the binary equivalent of ROT13 - it does just enough to fool\n"
-            "those pesky e-mail filters.\n"
-            "\n"
-            "Its intended use case is for when you want to e-mail a file ending with\n"
-            ".cmd (such as an st.cmd file), or even be so audacious as to want send\n"
-            "a friendly binary file to a friend or colleague. The e-mail filters are\n"
+            "those pesky e-mail filters.\n");
+   fprintf (stdout, "\n"
+            "Its intended use case is for when you want to e-mail a file ending with,\n"
+            "for example .cmd (such as an EPICS st.cmd file), or even be so audacious as\n"
+            "to want send a binary file to a friend or colleague. The e-mail filters are\n"
             "even shameless enough to poke inside zipped files and tar-ball files, so\n"
             "mangle provides a little bit of extra privacy (however I doubt it will\n"
-            "stop government agencies taking a peek).\n"
-            "\n"
+            "stop government 3-letter agencies taking a peek).\n");
+   fprintf (stdout, "\n"
             "Example usage:\n"
             "\n"
             "[sender]    tar -czv directory | mangle --key phrase > file\n"
@@ -700,12 +700,12 @@ static void help ()
             "mangle an involutory program, i.e. it also de-mangles as mangle is its\n"
             "own inverse, e.g.:\n"
             "\n"
-            "   mangle --key 'portunus' foo bar\n"
-            "   mangle --key 'portunus' bar recovered_foo\n"
+            "   mangle --key 'pass phrase' foo bar\n"
+            "   mangle --key 'pass phrase' bar recovered_foo\n"
             "\n"
             "foo and recovered_foo are identical, bar is a \"mess\".\n"
-            "\n"
-            "\n"
+            "\n");
+   fprintf (stdout,"\n"
             "Options\n"
             "--key, -k     Provides a mangling key phrase for a little bit more privacy.\n"
             "              The same key phrase must be used for mangling and de-mangling.\n"
@@ -715,16 +715,16 @@ static void help ()
             "--version, -v print mangle version and exit.\n"
             "\n"
             "--help, -h    print this help information and exit.\n"
-            "\n"
-            "\n"
+            "\n");
+   fprintf (stdout, "\n"
             "Parameters\n"
             "input_file    the file to be mangled/demangled. When no input file specified, or\n"
             "              just '-' specified, the input is taken from standard input.\n"
             "\n"
             "output_file   target demangled/mangled file. When no output file specified, or\n"
             "              just '-' specified, the output is sent to standard output.\n"
-            "\n"
-            "\n"
+            "\n");
+   fprintf (stdout, "\n"
             "Notes\n"
             "mangle was developed on Linux. However, no special libraries have been \n"
             "used, nor any wacky non-standard C language features, so it should be\n"
@@ -779,7 +779,7 @@ int main (int argc, char** argv)
    int fdout;
    int status;
 
-   /* skip progran name
+   /* skip program name
     */
    argc--;  argv++;
 
@@ -823,7 +823,7 @@ int main (int argc, char** argv)
       return 1;
    }
 
-   /* set defult I/O to stdin and stdout.
+   /* set default I/O to stdin and stdout.
     */
    fdin = 0;
    fdout = 1;
